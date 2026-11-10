@@ -115,10 +115,13 @@
     margin-top: var(--hd-space-5);
   }
 
+  /* Under the note, aligned with its text: the alert's own action slot would squeeze it. */
   .hds-gate__pending-actions {
-    display: inline-flex;
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--hd-space-1);
-    white-space: nowrap;
+    margin-top: var(--hd-space-2);
+    margin-inline-start: calc(-1 * var(--hd-space-2));
   }
 
   .hds-gate__actions {

@@ -34,7 +34,7 @@ describe("TrialBanner", () => {
       <TrialBanner client={client} className="ust" />
     ));
     const banner = bannerOf();
-    expect(banner.textContent).toContain("Deneme sürümü: 5 gün kaldı.");
+    expect(banner.textContent).toContain("Deneme sürümü: 6 gün kaldı.");
     expect(banner.getAttribute("data-tone")).toBe("info");
     expect(
       ["hds-banner", "ust"].every((name) =>
@@ -48,7 +48,23 @@ describe("TrialBanner", () => {
     act(() => {
       vi.advanceTimersByTime(2000 + 60_000);
     });
-    expect(banner.textContent).toContain("4 gün kaldı.");
+    expect(banner.textContent).toContain("5 gün kaldı.");
+  });
+
+  test("should count from the moment the state arrives, not from the first render", async () => {
+    vi.useFakeTimers({ now: NOW, toFake: ["Date"] });
+    const view = await mount(SUBSCRIBED, (client) => (
+      <TrialBanner client={client} />
+    ));
+    vi.setSystemTime(NOW + 10 * 60_000);
+    view.publish(
+      stateOf({
+        status: "trial",
+        trialEndsAt: NOW + 10 * 60_000 + 7 * DAY_MS,
+        licenseExpiresAt: NOW + DAY_MS,
+      })
+    );
+    expect(bannerOf().textContent).toContain("Deneme sürümü: 7 gün kaldı.");
   });
 
   test("should warn in the last days and on the last one", async () => {
@@ -58,7 +74,7 @@ describe("TrialBanner", () => {
     ));
     expect(bannerOf().getAttribute("data-tone")).toBe("warning");
     view.publish(trialEndingIn(3 * 60 * 60 * 1000));
-    expect(bannerOf().textContent).toContain("Deneme süreniz bugün bitiyor.");
+    expect(bannerOf().textContent).toContain("Deneme sürenizin son günü.");
     fireEvent.click(screen.getByRole("button", { name: "Abone ol" }));
     expect(view.bridge.invoke["subscription:purchase"]).toHaveBeenCalledWith({
       interval: "yearly",

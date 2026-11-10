@@ -64,7 +64,7 @@ type SubscriptionLabels = {
   retry: string;
   /** Opens the subscription page. */
   manage: string;
-  /** The banner during the trial; `days` is the whole days left (0 on the last day). */
+  /** The banner during the trial; `days` is the days left, 0 in the last 24 hours. */
   trialLeft: (days: number) => string;
   /** The banner's buy button. */
   subscribe: string;
@@ -160,7 +160,7 @@ const DEFAULT_SUBSCRIPTION_LABELS: Readonly<SubscriptionLabels> = {
   manage: "Aboneliği yönet",
   trialLeft: (days) =>
     days <= 0
-      ? "Deneme süreniz bugün bitiyor."
+      ? "Deneme sürenizin son günü."
       : `Deneme sürümü: ${days} gün kaldı.`,
   subscribe: "Abone ol",
   statusName: (status, plan) =>

@@ -29,8 +29,9 @@ describe("format.helper", () => {
     expect(formatDate(Date.UTC(2026, 10, 12, 12))).toBe("12 Kasım 2026");
   });
 
-  test("should count whole days and never below zero", () => {
-    expect(daysUntil(10 * 86_400_000 + 5, 0)).toBe(10);
+  test("should count the days a person counts, and the last day as 0", () => {
+    expect(daysUntil(7 * 86_400_000 - 5, 0)).toBe(7);
+    expect(daysUntil(86_400_000, 0)).toBe(1);
     expect(daysUntil(86_399_999, 0)).toBe(0);
     expect(daysUntil(0, 5)).toBe(0);
   });

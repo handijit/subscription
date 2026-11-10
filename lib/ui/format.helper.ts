@@ -32,9 +32,14 @@ const formatDate = (moment: number): string => dateFormat.format(moment);
 const formatDateTime = (moment: number): string =>
   dateTimeFormat.format(moment);
 
-/** Whole days left until a moment; 0 on the last day, never negative. */
-const daysUntil = (moment: number, now: number): number =>
-  Math.max(0, Math.floor((moment - now) / DAY_MS));
+/**
+ * The days left until a moment, as a person counts them: 6 days and 2 hours are 7 days, and
+ * the last 24 hours are 0 ("the last day").
+ */
+const daysUntil = (moment: number, now: number): number => {
+  const left = moment - now;
+  return left < DAY_MS ? 0 : Math.ceil(left / DAY_MS);
+};
 
 /**
  * How much cheaper the yearly plan is than twelve months of the monthly one, in whole percent;

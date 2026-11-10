@@ -5,7 +5,10 @@ import type { BadgeTone } from "@handijit/ui";
 import { useMemo } from "react";
 import type { ReactElement } from "react";
 
-import type { SubscriptionState, SubscriptionStatus } from "../types";
+import type {
+  SubscriptionState,
+  SubscriptionStatus as StatusName,
+} from "../types";
 import { formatDate, formatDateTime } from "./format.helper";
 import { ExternalIcon, OfflineIcon } from "./icons";
 import DEFAULT_SUBSCRIPTION_LABELS from "./labels.constants";
@@ -20,7 +23,7 @@ type SubscriptionStatusProps = {
   className?: string;
 };
 
-const TONES: Readonly<Record<SubscriptionStatus, BadgeTone>> = {
+const TONES: Readonly<Record<StatusName, BadgeTone>> = {
   loading: "neutral",
   trial: "info",
   subscribed: "success",

@@ -201,35 +201,28 @@ const SubscriptionGate = ({
     const { purchase: pending } = current;
     return pending === null ? null : (
       <div className="hds-gate__pending">
-        <Alert
-          tone="info"
-          title={text.purchasePendingTitle}
-          action={
-            <span className="hds-gate__pending-actions">
-              <Button
-                variant={UIVariant.GHOST}
-                size={UISize.XSMALL}
-                onClick={() => {
-                  buy(
-                    (current.purchase as { interval: PlanInterval }).interval
-                  );
-                }}
-              >
-                {text.reopenPage}
-              </Button>
-              <Button
-                variant={UIVariant.GHOST}
-                size={UISize.XSMALL}
-                onClick={run(cancelPurchase)}
-              >
-                {text.cancel}
-              </Button>
-            </span>
-          }
-        >
+        <Alert tone="info" title={text.purchasePendingTitle}>
           {current.isSignedIn
             ? text.purchasePendingBody
             : text.purchasePendingSignIn}
+          <span className="hds-gate__pending-actions">
+            <Button
+              variant={UIVariant.GHOST}
+              size={UISize.XSMALL}
+              onClick={() => {
+                buy(pending.interval);
+              }}
+            >
+              {text.reopenPage}
+            </Button>
+            <Button
+              variant={UIVariant.GHOST}
+              size={UISize.XSMALL}
+              onClick={run(cancelPurchase)}
+            >
+              {text.cancel}
+            </Button>
+          </span>
         </Alert>
       </div>
     );

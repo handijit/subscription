@@ -41,14 +41,15 @@ const TrialBanner = ({
     () => ({ ...DEFAULT_SUBSCRIPTION_LABELS, ...labels }),
     [labels]
   );
-  const [now, setNow] = useState(Date.now);
+  const [, setTick] = useState(0);
   const isTrial = state?.status === "trial";
 
-  // The count of days changes at its own pace, not only when the state does.
+  // The count of days changes at its own pace, not only when the state does: a render every
+  // minute reads the clock again.
   useEffect(() => {
     if (!isTrial) return undefined;
     const timer = setInterval(() => {
-      setNow(Date.now());
+      setTick((tick) => tick + 1);
     }, MINUTE_MS);
     return () => {
       clearInterval(timer);
@@ -56,7 +57,7 @@ const TrialBanner = ({
   }, [isTrial]);
 
   if (state?.status !== "trial") return null;
-  const days = daysUntil(state.trialEndsAt, now);
+  const days = daysUntil(state.trialEndsAt, Date.now());
 
   return (
     <div
