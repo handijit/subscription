@@ -288,7 +288,10 @@ main while connected.
 ### `@handijit/subscription/ui`
 
 - `<SubscriptionGate productName onSignIn? isSigningIn? titleBar? labels? client?>`
-- `<TrialBanner interval? warnDays? labels? className? client?>` — renders only in `trial`.
+- `<TrialBanner interval? warnDays? layout? labels? className? client?>` — renders only in
+  `trial`. `layout="inline"` (default) is one row for a strip above the content;
+  `layout="stacked"` puts the heading, the days left and a full-width button under each other,
+  for the plan area at the foot of a sidebar.
 - `<SubscriptionStatus labels? className? client?>` — for a settings page.
 - `DEFAULT_SUBSCRIPTION_LABELS`; every text can be replaced through `labels`.
 
