@@ -1,0 +1,337 @@
+/*
+ * The styles of the paywall, the trial banner and the status block. Everything is drawn with
+ * the tokens of @handijit/design, so light and dark follow <html data-theme> with no rule here.
+ * Import after "@handijit/design/tokens.css" and "@handijit/ui/styles.css".
+ */
+@layer ui {
+  /* --- the gate --------------------------------------------------------------------- */
+
+  /* The program keeps its own layout: the wrapper adds no box. */
+  .hds-gate__content {
+    display: contents;
+  }
+
+  .hds-gate {
+    position: fixed;
+    inset: 0;
+    z-index: var(--hd-z-modal);
+    display: grid;
+    box-sizing: border-box;
+    padding: var(--hd-space-12) var(--hd-space-6) var(--hd-space-6);
+    overflow: auto;
+    background-color: var(--hd-bg-page);
+    color: var(--hd-text);
+    font-family: var(--hd-font-body);
+  }
+
+  /* A frameless window can still be moved while the gate covers its title bar. */
+  .hds-gate::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: var(--hd-space-10);
+    -webkit-app-region: drag;
+  }
+
+  .hds-gate__bar {
+    position: absolute;
+    inset: 0 0 auto;
+  }
+
+  .hds-gate__checking {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hd-space-3);
+    margin: auto;
+    color: var(--hd-text-2);
+    font-size: var(--hd-type-small-size);
+    line-height: var(--hd-type-small-line-height);
+  }
+
+  .hds-gate__panel {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 34rem;
+    /* Centred, and when the window is shorter than the panel, scrollable from its top. */
+    margin: auto;
+    padding: var(--hd-space-8);
+    border: 1px solid var(--hd-border);
+    border-radius: var(--hd-radius-lg);
+    background-color: var(--hd-bg-surface);
+    box-shadow: var(--hd-shadow-2);
+    -webkit-app-region: no-drag;
+  }
+
+  .hds-gate__panel:focus {
+    outline: none;
+  }
+
+  .hds-gate__panel:focus-visible {
+    outline: 2px solid var(--hd-focus);
+    outline-offset: 2px;
+  }
+
+  .hds-gate__emblem {
+    display: inline-grid;
+    place-items: center;
+    width: var(--hd-space-12);
+    height: var(--hd-space-12);
+    margin-bottom: var(--hd-space-5);
+    border-radius: var(--hd-radius-md);
+    background-color: var(--hd-primary-soft);
+    color: var(--hd-primary-text);
+  }
+
+  .hds-gate__emblem[data-tone="warning"] {
+    background-color: var(--hd-warning-bg);
+    color: var(--hd-warning-fg);
+  }
+
+  .hds-gate__emblem[data-tone="danger"] {
+    background-color: var(--hd-danger-bg);
+    color: var(--hd-danger-fg);
+  }
+
+  .hds-gate__title {
+    margin: 0 0 var(--hd-space-2);
+    font-family: var(--hd-font-display);
+    font-size: var(--hd-type-h3-size);
+    font-weight: var(--hd-type-h3-weight);
+    line-height: var(--hd-type-h3-line-height);
+    letter-spacing: var(--hd-type-h3-letter-spacing);
+    font-stretch: var(--hd-type-h3-stretch);
+    color: var(--hd-text);
+  }
+
+  .hds-gate__text {
+    margin: 0;
+    font-size: var(--hd-type-body-size);
+    line-height: var(--hd-type-body-line-height);
+    color: var(--hd-text-2);
+  }
+
+  .hds-gate__pending {
+    margin-top: var(--hd-space-5);
+  }
+
+  .hds-gate__pending-actions {
+    display: inline-flex;
+    gap: var(--hd-space-1);
+    white-space: nowrap;
+  }
+
+  .hds-gate__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--hd-space-3);
+    margin-top: var(--hd-space-6);
+  }
+
+  .hds-gate__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--hd-space-2);
+    margin-top: var(--hd-space-6);
+    padding-top: var(--hd-space-5);
+    border-top: 1px solid var(--hd-border);
+    color: var(--hd-text-2);
+    font-size: var(--hd-type-small-size);
+    line-height: var(--hd-type-small-line-height);
+  }
+
+  /* --- the plans -------------------------------------------------------------------- */
+
+  .hds-plans {
+    margin-top: var(--hd-space-6);
+  }
+
+  .hds-plans__message {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hd-space-2);
+    margin: var(--hd-space-6) 0 0;
+    color: var(--hd-text-2);
+    font-size: var(--hd-type-small-size);
+    line-height: var(--hd-type-small-line-height);
+  }
+
+  .hds-plans > .hds-plans__message {
+    margin: 0 0 var(--hd-space-3);
+  }
+
+  .hds-plans__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--hd-space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .hds-plan {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hd-space-3);
+    padding: var(--hd-space-5);
+    border: 1px solid var(--hd-border);
+    border-radius: var(--hd-radius-md);
+    background-color: var(--hd-bg-surface);
+  }
+
+  .hds-plan[data-featured] {
+    border-color: var(--hd-accent);
+    box-shadow: inset 0 0 0 1px var(--hd-accent);
+  }
+
+  .hds-plan__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--hd-space-2);
+    min-height: var(--hd-space-6);
+  }
+
+  .hds-plan__name {
+    font-size: var(--hd-type-small-size);
+    font-weight: var(--hd-font-weight-semibold);
+    line-height: var(--hd-type-small-line-height);
+    color: var(--hd-text);
+  }
+
+  .hds-plan__price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--hd-space-1);
+    margin: 0;
+  }
+
+  .hds-plan__amount {
+    font-family: var(--hd-font-display);
+    font-size: var(--hd-type-h3-size);
+    font-weight: var(--hd-type-h3-weight);
+    line-height: var(--hd-type-h3-line-height);
+    font-variant-numeric: tabular-nums;
+    color: var(--hd-text);
+  }
+
+  .hds-plan__period {
+    font-size: var(--hd-type-small-size);
+    color: var(--hd-text-2);
+  }
+
+  /* The button sits at the bottom of both cards, whatever is above it. */
+  .hds-plan > button {
+    margin-top: auto;
+  }
+
+  .hds-plan__note {
+    font-size: var(--hd-type-caption-size);
+    line-height: var(--hd-type-caption-line-height);
+    color: var(--hd-text-3);
+  }
+
+  .hds-plans__note {
+    margin: var(--hd-space-3) 0 0;
+    font-size: var(--hd-type-caption-size);
+    line-height: var(--hd-type-caption-line-height);
+    color: var(--hd-text-3);
+  }
+
+  /* --- the banner ------------------------------------------------------------------- */
+
+  .hds-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--hd-space-3);
+    box-sizing: border-box;
+    padding: var(--hd-space-2) var(--hd-space-3) var(--hd-space-2)
+      var(--hd-space-4);
+    border: 1px solid var(--hd-info-line);
+    border-radius: var(--hd-radius-md);
+    background-color: var(--hd-info-bg);
+    color: var(--hd-info-fg);
+    font-family: var(--hd-font-body);
+    font-size: var(--hd-type-small-size);
+    line-height: var(--hd-type-small-line-height);
+    -webkit-app-region: no-drag;
+  }
+
+  .hds-banner[data-tone="warning"] {
+    border-color: var(--hd-warning-line);
+    background-color: var(--hd-warning-bg);
+    color: var(--hd-warning-fg);
+  }
+
+  .hds-banner svg {
+    flex-shrink: 0;
+  }
+
+  .hds-banner__text {
+    flex: 1;
+    min-width: 0;
+    color: var(--hd-text);
+  }
+
+  /* --- the status block ------------------------------------------------------------- */
+
+  .hds-status {
+    display: grid;
+    gap: var(--hd-space-3);
+    font-family: var(--hd-font-body);
+  }
+
+  .hds-status__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--hd-space-2);
+  }
+
+  .hds-status__lines {
+    display: grid;
+    gap: var(--hd-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--hd-type-small-size);
+    line-height: var(--hd-type-small-line-height);
+    color: var(--hd-text-2);
+  }
+
+  .hds-status__lines:empty {
+    display: none;
+  }
+
+  .hds-status__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--hd-space-2);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hds-gate__panel {
+      animation: hds-gate-enter var(--hd-duration-slow) var(--hd-ease-enter);
+    }
+  }
+
+  @keyframes hds-gate-enter {
+    from {
+      opacity: 0;
+      transform: translateY(var(--hd-space-2));
+    }
+  }
+
+  @media (forced-colors: active) {
+    .hds-gate__panel,
+    .hds-plan,
+    .hds-banner {
+      border-color: CanvasText;
+    }
+  }
+}
