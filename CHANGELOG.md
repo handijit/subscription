@@ -7,6 +7,25 @@ and the package follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-10
+
+### Changed
+
+- Requires `@handijit/core ^1.1.0` (peer and development). That release carries the rotated
+  production license key (`hd-license-2026-11-r2`); the old one was withdrawn, so a program
+  must be built against it to accept the licenses the API signs now.
+- The paid license and the plans are asked for through the client's own methods,
+  `issuePaidLicense` and `getPlans`, instead of generic `request` calls; the bound device of a
+  `SUBSCRIPTION_DEVICE_MISMATCH` is read with `readBoundDevice`, and the refusals are told apart
+  by `ERROR_CODES` and `isSubscriptionDeviceMismatch`. The `auth.client` a program passes needs
+  `issuePaidLicense` and `getPlans` (the `@handijit/auth` client has them with core 1.1).
+
+### Added
+
+- `TrialBanner` `layout="stacked"`: the heading, the days left and a full-width "Abone ol"
+  under each other, on the surface colour, for the plan area at the foot of a sidebar. Two new
+  labels go with it, `trialTitle` and `trialDaysLeft(days)`.
+
 ## [1.0.1] - 2026-11-10
 
 ### Fixed
