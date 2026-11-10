@@ -78,6 +78,18 @@ describe("readMachineId", () => {
     }
   });
 
+  test("should hand the command's output over when it succeeds", async () => {
+    vi.mocked(execFile).mockImplementationOnce(((
+      _file: string,
+      _args: string[],
+      _options: unknown,
+      callback: (error: Error | null, stdout: string) => void
+    ) => {
+      callback(null, IOREG_OUTPUT);
+    }) as never);
+    expect(await readMachineId("darwin")).toBe(MAC_UUID.toLowerCase());
+  });
+
   test("should answer null when the command cannot be started", async () => {
     vi.mocked(execFile).mockImplementationOnce(((
       _file: string,

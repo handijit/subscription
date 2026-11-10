@@ -178,7 +178,7 @@ describe("createSubscription options", () => {
     expect(fake.issueLicense).toHaveBeenCalledTimes(2);
   });
 
-  test("should use the defaults of logger, store, device name and platform", async () => {
+  test("should use the defaults of logger, store and device name", async () => {
     const fake = createFakeAuth();
     fake.answers.trial = problem(403, "TRIAL_EXPIRED");
     const subscription = createSubscription({
@@ -186,21 +186,10 @@ describe("createSubscription options", () => {
       auth: fake.auth,
       appVersion: "1.0.0",
       deviceId: DEVICE_ID,
+      platform: "darwin",
+      arch: "arm64",
     });
     const state = await startAndSettle(subscription);
-    const os = { darwin: "macos", win32: "windows" }[
-      process.platform as string
-    ];
-    const arch = ["x64", "arm64"].includes(process.arch)
-      ? process.arch
-      : undefined;
-    if (os === undefined || arch === undefined) {
-      expect(state).toMatchObject({
-        status: "unavailable",
-        reason: "unsupported-platform",
-      });
-      return;
-    }
     expect(secretStores).toHaveLength(1);
     const body = fake.issueLicense.mock.calls[0]?.[0] as Record<
       string,
@@ -210,11 +199,40 @@ describe("createSubscription options", () => {
       .replace(/\.local$/i, "")
       .trim()
       .slice(0, 100);
-    expect(body).toMatchObject({ os, arch });
+    expect(body).toMatchObject({ os: "macos", arch: "arm64" });
     expect(body.deviceName).toBe(
       expectedName === "" ? undefined : expectedName
     );
     expect(state).toMatchObject({ status: "trial-expired" });
+    subscription.dispose();
+  });
+
+  test("should read the platform from Node by default", async () => {
+    const fake = createFakeAuth();
+    fake.answers.trial = offline();
+    const subscription = createSubscription({
+      product: PRODUCT,
+      auth: fake.auth,
+      appVersion: "1.0.0",
+      deviceId: DEVICE_ID,
+      secretStore: createMemoryStore().store,
+    });
+    const state = await startAndSettle(subscription);
+    const os = { darwin: "macos", win32: "windows" }[
+      process.platform as string
+    ];
+    const isSupported =
+      os !== undefined && ["x64", "arm64"].includes(process.arch);
+    expect(state).toMatchObject(
+      isSupported
+        ? { status: "unavailable", reason: "offline" }
+        : { status: "unavailable", reason: "unsupported-platform" }
+    );
+    expect(fake.issueLicense.mock.calls[0]?.[0]).toEqual(
+      isSupported
+        ? expect.objectContaining({ os, arch: process.arch })
+        : undefined
+    );
     subscription.dispose();
   });
 
@@ -227,7 +245,7 @@ describe("createSubscription options", () => {
     });
   });
 
-  test("should name the platform's device the same way when it resolves the device id", async () => {
+  test("should read the stored device id when none is given, before asking the machine", async () => {
     const memory = createMemoryStore({
       "subscription-device": "stored-device-id-0123456789abcdef01234567",
     });
@@ -238,6 +256,7 @@ describe("createSubscription options", () => {
       auth: fake.auth,
       appVersion: "1.0.0",
       secretStore: memory.store,
+      platform: "win32",
       arch: "x64",
     });
     await startAndSettle(subscription);

@@ -54,6 +54,7 @@ export default defineConfig({
         "lib/react.ts",
         "lib/ui.ts",
         "lib/types/**",
+        "lib/main/types.ts",
       ],
       thresholds: { 100: true },
     },

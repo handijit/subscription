@@ -12,6 +12,7 @@ import type {
 } from "../../lib/main/types";
 import type { SubscriptionState } from "../../lib/types";
 import createLicenseSigner from "../support/license-signer";
+import PENDING_CRYPTO from "../support/pending-crypto";
 import type {
   IssuedLicense,
   LicenseInput,
@@ -224,12 +225,28 @@ const createElectronMock = () => {
   return { app, powerMonitor, shell };
 };
 
-/** Lets real promises (WebCrypto, the store) settle while the timers stay fake. */
-const settle = async (rounds = 30): Promise<void> => {
-  for (let index = 0; index < rounds; index += 1) {
+const QUIET_TURNS = 30;
+const SETTLE_LIMIT_MS = 5000;
+
+/**
+ * Lets real promises (WebCrypto, the store) settle while the timers stay fake: turns the event
+ * loop until no license verification has been running for 30 turns in a row. WebCrypto runs
+ * on Node's thread pool, so a fixed number of turns is enough on one machine and too few on a
+ * busy one (it was on CI's Linux).
+ */
+const settle = async (): Promise<void> => {
+  const deadline = performance.now() + SETTLE_LIMIT_MS;
+  let quietTurns = 0;
+  while (quietTurns < QUIET_TURNS) {
     await new Promise<void>((resolve) => {
       setImmediate(resolve);
     });
+    quietTurns = PENDING_CRYPTO.count === 0 ? quietTurns + 1 : 0;
+    if (performance.now() > deadline) {
+      throw new Error(
+        `settle: ${PENDING_CRYPTO.count} license verification(s) still running after ${SETTLE_LIMIT_MS} ms`
+      );
+    }
   }
 };
 
