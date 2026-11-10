@@ -1,0 +1,92 @@
+/* Only what stands around the components in a program: a title bar, a settings row. */
+html,
+body {
+  margin: 0;
+  background-color: var(--hd-bg-page);
+  color: var(--hd-text);
+  font-family: var(--hd-font-body);
+}
+
+.shot-sheet {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--hd-space-6);
+  padding: var(--hd-space-6);
+}
+
+.shot-column {
+  display: grid;
+  align-content: start;
+  gap: var(--hd-space-3);
+}
+
+.shot-column h2 {
+  margin: 0;
+  color: var(--hd-text-2);
+  font-size: var(--hd-type-caption-size);
+  font-weight: 600;
+}
+
+.shot-label {
+  font-family: var(--hd-font-mono);
+  font-size: var(--hd-type-caption-size);
+  color: var(--hd-text-3);
+}
+
+.shot-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  height: 40px;
+  padding-inline: var(--hd-space-3);
+  border-bottom: 1px solid var(--hd-border);
+  background-color: var(--hd-bg-surface);
+}
+
+.shot-titlebar__name {
+  font-size: var(--hd-type-small-size);
+  font-weight: 600;
+}
+
+.shot-controls {
+  display: inline-flex;
+  gap: var(--hd-space-3);
+}
+
+.shot-controls i {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--hd-text-2);
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+.shot-card {
+  box-sizing: border-box;
+  padding: var(--hd-space-4);
+  border: 1px solid var(--hd-border);
+  border-radius: var(--hd-radius-md);
+  background-color: var(--hd-bg-surface);
+}
+
+.shot-program {
+  display: grid;
+  gap: var(--hd-space-5);
+  padding: var(--hd-space-6) var(--hd-space-8);
+}
+
+.shot-program h1 {
+  margin: 0;
+  font-family: var(--hd-font-display);
+  font-size: var(--hd-type-h3-size);
+}
+
+.shot-program h2 {
+  margin: 0 0 var(--hd-space-3);
+  font-size: var(--hd-type-body-size);
+}
+
+.hds-gate__bar .shot-titlebar {
+  border-width: 0 0 1px;
+}
