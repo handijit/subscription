@@ -1,4 +1,8 @@
-import type { PlanInterval, UnavailableReason } from "../types";
+import type {
+  PlanInterval,
+  SubscriptionStatus,
+  UnavailableReason,
+} from "../types";
 
 /** Every text the components show. Turkish by default; pass `labels` to change any of them. */
 type SubscriptionLabels = {
@@ -65,7 +69,7 @@ type SubscriptionLabels = {
   /** The banner's buy button. */
   subscribe: string;
   /** The status: the name of each status for the settings page. */
-  statusName: (status: string, plan: PlanInterval | null) => string;
+  statusName: (status: SubscriptionStatus, plan: PlanInterval | null) => string;
   /** The status: when the trial ends. */
   trialEndsOn: (date: string) => string;
   /** The status: until when the held license works without the backend. */
@@ -107,9 +111,10 @@ const UNAVAILABLE_BODIES: Readonly<Record<UnavailableReason, string>> = {
     "Bu program yalnızca Windows ve macOS üzerinde, x64 ya da arm64 işlemcilerde çalışır.",
 };
 
-const STATUS_NAMES: Readonly<Record<string, string>> = {
+const STATUS_NAMES: Readonly<Record<SubscriptionStatus, string>> = {
   loading: "Denetleniyor",
   trial: "Deneme sürümü",
+  subscribed: "Abonelik",
   "trial-expired": "Deneme süresi doldu",
   "subscription-required": "Abonelik yok",
   "device-mismatch": "Başka cihaza bağlı",
@@ -161,7 +166,7 @@ const DEFAULT_SUBSCRIPTION_LABELS: Readonly<SubscriptionLabels> = {
   statusName: (status, plan) =>
     status === "subscribed" && plan !== null
       ? `${PLAN_NAMES[plan]} abonelik`
-      : (STATUS_NAMES[status] ?? status),
+      : STATUS_NAMES[status],
   trialEndsOn: (date) => `Deneme ${date} tarihinde bitiyor`,
   validUntil: (date) => `Lisans ${date} tarihine kadar çevrimdışı geçerli`,
   checkedOn: (date) => `Son denetim ${date}`,

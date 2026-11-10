@@ -37,6 +37,11 @@ type SubscriptionGateProps = {
 };
 
 type Tone = "neutral" | "warning" | "danger";
+// The statuses the gate covers the program for, with a panel.
+type Blocking = Exclude<
+  SubscriptionState,
+  { status: "loading" | "trial" | "subscribed" }
+>;
 type GateBody = {
   icon: ReactNode;
   tone: Tone;
@@ -87,7 +92,7 @@ const SubscriptionGate = ({
 
   const isCovering = !isLicensed(state);
   const status = state?.status;
-  const isPending = state?.purchase !== null && state?.purchase !== undefined;
+  const isPending = (state?.purchase ?? null) !== null;
 
   // `inert` through the DOM: React 18 does not know the attribute and React 19 wants a
   // boolean, so neither spelling works on both.
@@ -123,7 +128,7 @@ const SubscriptionGate = ({
     </Button>
   );
 
-  const bodyOf = (current: SubscriptionState): GateBody => {
+  const bodyOf = (current: Blocking): GateBody => {
     switch (current.status) {
       case "trial-expired":
         return {
@@ -168,21 +173,19 @@ const SubscriptionGate = ({
           ),
         };
       }
-      default: {
-        // unavailable (loading is drawn without a panel)
-        const reason =
-          current.status === "unavailable" ? current.reason : "offline";
+      case "unavailable": {
+        const { reason } = current;
+        const isConnection = reason === "offline" || reason === "service";
         return {
           icon:
             reason === "clock" ? (
               <ClockIcon size={24} />
-            ) : reason === "offline" || reason === "service" ? (
+            ) : isConnection ? (
               <OfflineIcon size={24} />
             ) : (
               <KeyIcon size={24} />
             ),
-          tone:
-            reason === "offline" || reason === "service" ? "neutral" : "danger",
+          tone: isConnection ? "neutral" : "danger",
           title: text.unavailableTitle(reason),
           text: text.unavailableBody(reason),
           actions:
@@ -194,8 +197,9 @@ const SubscriptionGate = ({
     }
   };
 
-  const renderPending = (current: SubscriptionState): ReactNode =>
-    current.purchase === null ? null : (
+  const renderPending = (current: SubscriptionState): ReactNode => {
+    const { purchase: pending } = current;
+    return pending === null ? null : (
       <div className="hds-gate__pending">
         <Alert
           tone="info"
@@ -229,8 +233,9 @@ const SubscriptionGate = ({
         </Alert>
       </div>
     );
+  };
 
-  const renderPanel = (current: SubscriptionState): ReactElement => {
+  const renderPanel = (current: Blocking): ReactElement => {
     const body = bodyOf(current);
     const canSignIn =
       body.offers === true && !current.isSignedIn && onSignIn !== undefined;
@@ -311,7 +316,8 @@ const SubscriptionGate = ({
           <span>{text.checking}</span>
         </div>
       ) : (
-        renderPanel(current)
+        // Only reached while covering: neither a trial nor a subscription.
+        renderPanel(current as Blocking)
       )}
     </div>
   );

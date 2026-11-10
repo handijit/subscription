@@ -49,8 +49,9 @@ const HOUR_MS = 60 * MINUTE_MS;
 
 const DEFAULT_REFRESH_INTERVAL_MS = 6 * HOUR_MS;
 const DEFAULT_PURCHASE_TIMEOUT_MS = 30 * MINUTE_MS;
-// A timer cannot wait longer than 2^31 ms; a day is more than any wait here needs.
-const MAX_TIMER_MS = 24 * HOUR_MS;
+// A timer cannot wait longer than 2^31 - 1 ms (24.8 days); a longer wait is cut to that and
+// checked again when it fires.
+const MAX_TIMER_MS = 2 ** 31 - 1;
 const MAX_SETTING_MS = 7 * 24 * HOUR_MS;
 
 // The backend allows 60 license requests in 10 minutes, per address and per customer. Clicks,
@@ -182,13 +183,9 @@ const later = (run: () => void, delayMs: number): NodeJS.Timeout => {
   return timer;
 };
 
-const defaultDeviceName = (): string | undefined => {
-  const name = hostname()
-    .replace(LOCAL_HOST_SUFFIX, "")
-    .trim()
-    .slice(0, MAX_DEVICE_NAME_LENGTH);
-  return name === "" ? undefined : name;
-};
+// "Ahmets-MacBook-Pro.local" is shown in the panel as "Ahmets-MacBook-Pro".
+const defaultDeviceName = (): string =>
+  hostname().replace(LOCAL_HOST_SUFFIX, "");
 
 const defaultOpenExternal = async (url: string): Promise<boolean> => {
   try {
@@ -214,8 +211,8 @@ const boundDeviceOf = (
   return { name: textOrNull(name), os: textOrNull(os) };
 };
 
-const momentOf = (iso: unknown): number | null => {
-  const moment = typeof iso === "string" ? Date.parse(iso) : Number.NaN;
+const momentOf = (iso: string): number | null => {
+  const moment = Date.parse(iso);
   return Number.isFinite(moment) ? moment : null;
 };
 
@@ -299,10 +296,11 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
     MINUTE_MS,
     DEFAULT_PURCHASE_TIMEOUT_MS
   );
-  const os = OPERATING_SYSTEMS[options.platform ?? process.platform];
+  const platform = options.platform ?? process.platform;
+  const os = OPERATING_SYSTEMS[platform];
   const arch = ARCHITECTURES[options.arch ?? process.arch];
   const deviceName = (options.deviceName ?? defaultDeviceName())
-    ?.trim()
+    .trim()
     .slice(0, MAX_DEVICE_NAME_LENGTH);
 
   const listeners = new Set<(state: SubscriptionState) => void>();
@@ -487,7 +485,7 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
   const requestBody = (id: string): IssueLicenseRequest => ({
     product,
     deviceId: id,
-    ...(deviceName === undefined || deviceName === "" ? {} : { deviceName }),
+    ...(deviceName === "" ? {} : { deviceName }),
     // `isSupported` was checked before any request is built.
     os: os as "windows" | "macos",
     arch: arch as "x64" | "arm64",
@@ -643,7 +641,8 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
     return refusalOf(null, trial.error);
   };
 
-  const apply = (outcome: Outcome, mode: Mode): void => {
+  // A poll never yields a refusal or a failure (see `obtain`): only a full run changes them.
+  const apply = (outcome: Outcome): void => {
     if (outcome.kind === "none") return;
     const at = now();
     if (outcome.kind === "failed") {
@@ -670,7 +669,7 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
     }
     failureCount = 0;
     if (outcome.kind === "refused") {
-      if (mode === "full") held = null;
+      held = null;
       refusal = outcome.refusal;
       failure = null;
       trialEndedAt = outcome.trialEndedAt ?? trialEndedAt;
@@ -706,7 +705,7 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
 
   const scheduleExpiry = (): void => {
     clearTimeout(expiryTimer);
-    if (held === null || isDisposed) return;
+    if (held === null) return;
     const left = held.claims.exp * SECOND_MS - now();
     if (left <= 0) return;
     expiryTimer = later(() => {
@@ -721,14 +720,13 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
 
   const scheduleRefresh = (): void => {
     clearTimeout(refreshTimer);
-    if (isDisposed) return;
     const at = now();
     let delay =
       failure !== null && failureCount > 0
         ? jitter(
             RETRY_DELAYS_MS[
               Math.min(failureCount, RETRY_DELAYS_MS.length) - 1
-            ] ?? refreshIntervalMs
+            ] as number
           )
         : refreshIntervalMs;
     if (held !== null) {
@@ -762,7 +760,7 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
     // The session changed while the request was on its way: its answer belongs to the other
     // customer, so it is dropped and the license is asked for again.
     if (runGeneration !== generation) return null;
-    apply(outcome, mode);
+    apply(outcome);
     if (mode === "full" || outcome.kind === "license") scheduleRefresh();
     return publish();
   };
@@ -798,14 +796,14 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
       publish();
       return;
     }
-    const delay =
-      POLL_DELAYS_MS[Math.min(pollIndex, POLL_DELAYS_MS.length - 1)] ??
-      MINUTE_MS;
+    const delay = POLL_DELAYS_MS[
+      Math.min(pollIndex, POLL_DELAYS_MS.length - 1)
+    ] as number;
     pollTimer = later(() => void poll(), Math.min(delay, left));
   };
 
+  // Called only while a purchase is pending: by its timer and by a focus change.
   const poll = async (): Promise<void> => {
-    if (purchase === null) return;
     pollIndex += 1;
     await run("poll", true);
     schedulePoll();
@@ -995,7 +993,7 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
           options.deviceId ??
           (await resolveDeviceId({
             product,
-            platform: options.platform ?? process.platform,
+            platform,
             store: target,
             logger,
           }));

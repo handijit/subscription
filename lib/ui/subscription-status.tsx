@@ -5,7 +5,7 @@ import type { BadgeTone } from "@handijit/ui";
 import { useMemo } from "react";
 import type { ReactElement } from "react";
 
-import type { SubscriptionState } from "../types";
+import type { SubscriptionState, SubscriptionStatus } from "../types";
 import { formatDate, formatDateTime } from "./format.helper";
 import { ExternalIcon, OfflineIcon } from "./icons";
 import DEFAULT_SUBSCRIPTION_LABELS from "./labels.constants";
@@ -20,7 +20,7 @@ type SubscriptionStatusProps = {
   className?: string;
 };
 
-const TONES: Readonly<Record<string, BadgeTone>> = {
+const TONES: Readonly<Record<SubscriptionStatus, BadgeTone>> = {
   loading: "neutral",
   trial: "info",
   subscribed: "success",
@@ -68,7 +68,7 @@ const SubscriptionStatus = ({
       data-status={status}
     >
       <div className="hds-status__head">
-        <Badge tone={TONES[status] ?? "neutral"} variant="soft">
+        <Badge tone={TONES[status]} variant="soft">
           {text.statusName(
             status,
             state?.status === "subscribed" ? state.plan : null
