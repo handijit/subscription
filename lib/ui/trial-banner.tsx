@@ -19,6 +19,11 @@ type TrialBannerProps = {
   warnDays?: number;
   /** Replaces any of the Turkish texts. */
   labels?: Partial<SubscriptionLabels>;
+  /**
+   * `inline` (default): one row, for a strip above the content. `stacked`: a heading, the days
+   * left and a full-width button under each other, for a sidebar's plan area.
+   */
+  layout?: "inline" | "stacked";
   /** Extra class on the banner. */
   className?: string;
 };
@@ -27,13 +32,15 @@ const MINUTE_MS = 60_000;
 
 /**
  * A slim banner during the trial: how many days are left and a "subscribe" button. Renders
- * nothing in any other status. Place it where the program shows notices, inside the gate.
+ * nothing in any other status. Place it where the program shows notices, inside the gate:
+ * `layout="stacked"` fits the plan area at the foot of a sidebar.
  */
 const TrialBanner = ({
   client,
   interval = "monthly",
   warnDays = 2,
   labels,
+  layout = "inline",
   className,
 }: TrialBannerProps): ReactElement | null => {
   const { state, purchase } = useSubscription(client);
@@ -59,24 +66,41 @@ const TrialBanner = ({
   if (state?.status !== "trial") return null;
   const days = daysUntil(state.trialEndsAt, Date.now());
 
+  const subscribeButton = (
+    <Button
+      variant={UIVariant.ACCENT}
+      size={layout === "stacked" ? UISize.SMALL : UISize.XSMALL}
+      isLoading={state.purchase !== null}
+      onClick={() => {
+        void purchase(interval).catch(() => undefined);
+      }}
+    >
+      {text.subscribe}
+    </Button>
+  );
+
   return (
     <div
       className={["hds-banner", className].filter(Boolean).join(" ")}
       data-tone={days <= warnDays ? "warning" : "info"}
+      data-layout={layout}
       role="status"
     >
-      <ClockIcon />
-      <span className="hds-banner__text">{text.trialLeft(days)}</span>
-      <Button
-        variant={UIVariant.ACCENT}
-        size={UISize.XSMALL}
-        isLoading={state.purchase !== null}
-        onClick={() => {
-          void purchase(interval).catch(() => undefined);
-        }}
-      >
-        {text.subscribe}
-      </Button>
+      {layout === "stacked" ? (
+        <>
+          <span className="hds-banner__head">
+            <ClockIcon />
+            {text.trialTitle}
+          </span>
+          <span className="hds-banner__text">{text.trialDaysLeft(days)}</span>
+        </>
+      ) : (
+        <>
+          <ClockIcon />
+          <span className="hds-banner__text">{text.trialLeft(days)}</span>
+        </>
+      )}
+      {subscribeButton}
     </div>
   );
 };

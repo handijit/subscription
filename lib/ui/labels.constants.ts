@@ -68,6 +68,10 @@ type SubscriptionLabels = {
   trialLeft: (days: number) => string;
   /** The banner's buy button. */
   subscribe: string;
+  /** The heading of the stacked banner (a sidebar's plan area). */
+  trialTitle: string;
+  /** The stacked banner's count; `days` is the days left, 0 in the last 24 hours. */
+  trialDaysLeft: (days: number) => string;
   /** The status: the name of each status for the settings page. */
   statusName: (status: SubscriptionStatus, plan: PlanInterval | null) => string;
   /** The status: when the trial ends. */
@@ -163,6 +167,8 @@ const DEFAULT_SUBSCRIPTION_LABELS: Readonly<SubscriptionLabels> = {
       ? "Deneme sürenizin son günü."
       : `Deneme sürümü: ${days} gün kaldı.`,
   subscribe: "Abone ol",
+  trialTitle: "Deneme sürümü",
+  trialDaysLeft: (days) => (days <= 0 ? "Bugün son gün" : `${days} gün kaldı`),
   statusName: (status, plan) =>
     status === "subscribed" && plan !== null
       ? `${PLAN_NAMES[plan]} abonelik`

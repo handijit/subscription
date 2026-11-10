@@ -281,6 +281,34 @@
     color: var(--hd-text);
   }
 
+  /* Stacked: a quiet card in a sidebar; the warning tone still takes over near the end. */
+  .hds-banner[data-layout="stacked"] {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--hd-space-1);
+    padding: var(--hd-space-3);
+  }
+
+  .hds-banner[data-layout="stacked"][data-tone="info"] {
+    border-color: var(--hd-border);
+    background-color: var(--hd-bg-surface);
+    color: var(--hd-text-2);
+  }
+
+  .hds-banner__head {
+    display: flex;
+    align-items: center;
+    gap: var(--hd-space-2);
+    font-size: var(--hd-type-caption-size);
+    font-weight: var(--hd-font-weight-semibold);
+    line-height: var(--hd-type-caption-line-height);
+  }
+
+  .hds-banner[data-layout="stacked"] .hds-banner__text {
+    margin-bottom: var(--hd-space-2);
+    font-weight: var(--hd-font-weight-medium);
+  }
+
   /* --- the status block ------------------------------------------------------------- */
 
   .hds-status {

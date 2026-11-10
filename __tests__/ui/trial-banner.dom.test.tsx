@@ -119,4 +119,33 @@ describe("TrialBanner", () => {
     ));
     expect(view.container.innerHTML).toBe("");
   });
+  test("should stack the heading, the days left and the button for a sidebar", async () => {
+    vi.useFakeTimers({ now: NOW, toFake: ["Date"] });
+    const view = await mount(trialEndingIn(4 * DAY_MS + 1000), (client) => (
+      <TrialBanner client={client} layout="stacked" />
+    ));
+    const banner = bannerOf();
+    expect(banner.getAttribute("data-layout")).toBe("stacked");
+    expect(banner.querySelector(".hds-banner__head")?.textContent).toBe(
+      "Deneme sürümü"
+    );
+    expect(banner.querySelector(".hds-banner__text")?.textContent).toBe(
+      "5 gün kaldı"
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Abone ol" }));
+    expect(view.bridge.invoke["subscription:purchase"]).toHaveBeenCalledWith({
+      interval: "monthly",
+    });
+  });
+
+  test("should say when the stacked banner's last day has come", async () => {
+    vi.useFakeTimers({ now: NOW, toFake: ["Date"] });
+    await mount(trialEndingIn(3 * 60 * 60 * 1000), (client) => (
+      <TrialBanner client={client} layout="stacked" />
+    ));
+    expect(bannerOf().querySelector(".hds-banner__text")?.textContent).toBe(
+      "Bugün son gün"
+    );
+    expect(bannerOf().getAttribute("data-tone")).toBe("warning");
+  });
 });

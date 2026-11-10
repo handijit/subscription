@@ -92,6 +92,7 @@ describe("the public API", () => {
       buy: plans,
       saving: [[16]],
       trialLeft: [[0], [5]],
+      trialDaysLeft: [[0], [5]],
       statusName: [
         ["loading", null],
         ["trial", null],
