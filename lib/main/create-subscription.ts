@@ -1,13 +1,15 @@
 import { hostname } from "node:os";
 
-import { licenseResponseSchema } from "@handijit/core";
 import type { IssueLicenseRequest, LicenseResponse } from "@handijit/core";
 import {
+  ERROR_CODES,
   hasErrorCode,
   isApiError,
   isRateLimited,
+  isSubscriptionDeviceMismatch,
   isTrialExpired,
   isUnauthorized,
+  readBoundDevice,
 } from "@handijit/core/errors";
 import {
   PRODUCTION_LICENSE_KEYS,
@@ -32,7 +34,7 @@ import type {
 import resolveDeviceId, { DEVICE_ID_PATTERN } from "./device-id";
 import { EMPTY_RECORD, readRecord, writeRecord } from "./license-store";
 import type { LicenseRecord } from "./license-store";
-import { plansResponseSchema, toPlanOffers } from "./plans.helper";
+import toPlanOffers from "./plans.helper";
 import SubscriptionAccessError from "./subscription-access-error";
 import type {
   AccessCheck,
@@ -78,7 +80,6 @@ const PLANS_TTL_MS = HOUR_MS;
 
 const DEFAULT_PANEL_BASE_URL = "https://www.handijit.com";
 const SUBSCRIPTION_PAGE_PATH = "/panel/hesabim/abonelik";
-const PAID_LICENSE_PATH = "/api/customer/licenses";
 const PRODUCT_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MAX_PRODUCT_LENGTH = 64;
 const MAX_DEVICE_NAME_LENGTH = 100;
@@ -194,21 +195,6 @@ const defaultOpenExternal = async (url: string): Promise<boolean> => {
   } catch {
     return false;
   }
-};
-
-const textOrNull = (value: unknown): string | null =>
-  typeof value === "string" && value !== "" ? value : null;
-
-// `boundDevice: { name, os }` of a 409; whatever is missing stays unknown.
-const boundDeviceOf = (
-  extensions: Readonly<Record<string, unknown>>
-): { name: string | null; os: string | null } => {
-  const device = extensions.boundDevice;
-  if (typeof device !== "object" || device === null) {
-    return { name: null, os: null };
-  }
-  const { name, os } = device as Record<string, unknown>;
-  return { name: textOrNull(name), os: textOrNull(os) };
 };
 
 const momentOf = (iso: string): number | null => {
@@ -525,12 +511,12 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
   };
 
   const isPaidRefusal = (error: unknown): boolean =>
-    hasErrorCode(error, "SUBSCRIPTION_REQUIRED") ||
-    hasErrorCode(error, "SUBSCRIPTION_DEVICE_MISMATCH") ||
+    hasErrorCode(error, ERROR_CODES.SUBSCRIPTION_REQUIRED) ||
+    isSubscriptionDeviceMismatch(error) ||
     isUnauthorized(error);
   const isTrialRefusal = (error: unknown): boolean =>
-    hasErrorCode(error, "TRIAL_EXPIRED") ||
-    hasErrorCode(error, "TRIAL_NOT_AVAILABLE");
+    hasErrorCode(error, ERROR_CODES.TRIAL_EXPIRED) ||
+    hasErrorCode(error, ERROR_CODES.TRIAL_NOT_AVAILABLE);
 
   // The license is checked here, in main, before anything in it counts: signature against
   // the built-in keys, product, device, issue and expiry times.
@@ -580,19 +566,18 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
     const ended = isTrialExpired(trialError)
       ? momentOf(trialError.extensions.trialEndedAt)
       : null;
-    if (hasErrorCode(paidError, "SUBSCRIPTION_DEVICE_MISMATCH")) {
+    // Defined exactly for a SUBSCRIPTION_DEVICE_MISMATCH; what the backend left out is null.
+    const boundDevice = readBoundDevice(paidError);
+    if (boundDevice !== undefined) {
       return {
         kind: "refused",
-        refusal: {
-          status: "device-mismatch",
-          boundDevice: boundDeviceOf(paidError.extensions),
-        },
+        refusal: { status: "device-mismatch", boundDevice },
         trialEndedAt: ended,
       };
     }
     if (
-      !hasErrorCode(paidError, "SUBSCRIPTION_REQUIRED") &&
-      hasErrorCode(trialError, "TRIAL_EXPIRED")
+      !hasErrorCode(paidError, ERROR_CODES.SUBSCRIPTION_REQUIRED) &&
+      hasErrorCode(trialError, ERROR_CODES.TRIAL_EXPIRED)
     ) {
       return {
         kind: "refused",
@@ -613,14 +598,7 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
       attempt(() => auth.client.issueLicense(body), isTrialRefusal);
     if (user !== null) {
       const paid = await attempt(
-        () =>
-          auth.client.request({
-            method: "POST",
-            path: PAID_LICENSE_PATH,
-            body,
-            auth: true,
-            schema: licenseResponseSchema,
-          }),
+        () => auth.client.issuePaidLicense(body),
         isPaidRefusal
       );
       if (paid.kind === "answer") return accept(paid.response, user);
@@ -854,16 +832,12 @@ const createSubscription = (options: SubscriptionOptions): Subscription => {
     plans = { status: "loading", offers: plans.offers };
     publish();
     try {
-      const list = await auth.client.request({
-        method: "GET",
-        path: `/api/public/products/${product}/plans`,
-        schema: plansResponseSchema,
-      });
+      const list = await auth.client.getPlans(product);
       plans = { status: "ready", offers: toPlanOffers(list) };
       plansLoadedAt = now();
     } catch (error) {
       // A program that is not on sale (yet) has no plans; that is not a failure to show.
-      if (hasErrorCode(error, "NOT_FOUND")) {
+      if (hasErrorCode(error, ERROR_CODES.NOT_FOUND)) {
         plans = { status: "ready", offers: [] };
         plansLoadedAt = now();
       } else {

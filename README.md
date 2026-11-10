@@ -56,15 +56,15 @@ npm install @handijit/ui react react-dom   # only for the /react and /ui entries
 npm install --save-dev electron
 ```
 
-| Peer                 | Range              | Why                                                                                      |
-| -------------------- | ------------------ | ---------------------------------------------------------------------------------------- |
-| `electron`           | `>=43.0.0 <46.0.0` | The range of `@handijit/electron`. The smoke test of this package runs on 45.            |
-| `@handijit/auth`     | `^1.0.0`           | The customer's session: its `client` asks for the paid license with the access token.    |
-| `@handijit/electron` | `^1.0.0`           | The IPC contract, the bridge and the secret store.                                       |
-| `@handijit/core`     | `^1.0.0`           | License verification, the license schemas, the error guards and the version check.       |
-| `zod`                | `^4.0.0`           | The schemas of the IPC contract (main only).                                             |
-| `react` (optional)   | `>=18`             | Only for `/react` and `/ui`.                                                             |
-| `@handijit/ui` (opt) | `^2.0.0`           | Only for `/ui`. Its stylesheet and the tokens of `@handijit/design` must be on the page. |
+| Peer                 | Range              | Why                                                                                        |
+| -------------------- | ------------------ | ------------------------------------------------------------------------------------------ |
+| `electron`           | `>=43.0.0 <46.0.0` | The range of `@handijit/electron`. The smoke test of this package runs on 45.              |
+| `@handijit/auth`     | `^1.0.0`           | The customer's session: its `client` asks for the paid license with the access token.      |
+| `@handijit/electron` | `^1.0.0`           | The IPC contract, the bridge and the secret store.                                         |
+| `@handijit/core`     | `^1.1.0`           | License verification, the paid license and the plans, the error guards, the version check. |
+| `zod`                | `^4.0.0`           | The schemas of the IPC contract (main only).                                               |
+| `react` (optional)   | `>=18`             | Only for `/react` and `/ui`.                                                               |
+| `@handijit/ui` (opt) | `^2.0.0`           | Only for `/ui`. Its stylesheet and the tokens of `@handijit/design` must be on the page.   |
 
 Node 24 or newer for the tooling. The main-process code runs on the Node that Electron embeds.
 The subscription only uses `@handijit/auth` through its `Auth` instance; it never imports it.

@@ -5,7 +5,6 @@ import {
   DAY_MS,
   HOUR_MS,
   MINUTE_MS,
-  PAID_PATH,
   START,
   createElectronMock,
   createFakeAuth,
@@ -46,14 +45,10 @@ describe("createSubscription paid license", () => {
     fake.answers.paid = issued;
     const state = await startAndSettle(subscription);
 
-    expect(fake.request).toHaveBeenCalledWith(
-      expect.objectContaining({
-        method: "POST",
-        path: PAID_PATH,
-        auth: true,
-        body: expect.objectContaining({ product: "notlar" }),
-      })
+    expect(fake.issuePaidLicense).toHaveBeenCalledWith(
+      expect.objectContaining({ product: "notlar" })
     );
+    expect(fake.request).not.toHaveBeenCalled();
     expect(fake.issueLicense).not.toHaveBeenCalled();
     expect(state).toMatchObject({
       status: "subscribed",

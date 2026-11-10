@@ -148,7 +148,7 @@
   "private": false,
   "peerDependencies": {
     "@handijit/auth": "^1.0.0",
-    "@handijit/core": "^1.0.0",
+    "@handijit/core": "^1.1.0",
     "@handijit/electron": "^1.0.0",
     "@handijit/ui": "^2.0.0",
     "electron": ">=43.0.0 <46.0.0",
@@ -167,7 +167,7 @@
     "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^10.0.1",
     "@handijit/auth": "^1.0.0",
-    "@handijit/core": "^1.0.0",
+    "@handijit/core": "^1.1.0",
     "@handijit/design": "^1.1.0",
     "@handijit/electron": "^1.0.0",
     "@handijit/ui": "^2.1.0",

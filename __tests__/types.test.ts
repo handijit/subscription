@@ -30,9 +30,12 @@ describe("the options", () => {
     expectTypeOf<SecretStore>().toExtend<
       NonNullable<SubscriptionOptions["secretStore"]>
     >();
-    expectTypeOf<Pick<ApiClient, "request" | "issueLicense">>().toExtend<
-      SubscriptionOptions["auth"]["client"]
-    >();
+    expectTypeOf<
+      Pick<
+        ApiClient,
+        "request" | "issueLicense" | "issuePaidLicense" | "getPlans"
+      >
+    >().toExtend<SubscriptionOptions["auth"]["client"]>();
   });
 
   test("should need only the product and the auth instance", () => {

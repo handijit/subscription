@@ -30,7 +30,10 @@ type SubscriptionAuthState = {
  */
 type SubscriptionAuth = {
   /** The API client; it sends the customer's access token on requests with `auth: true`. */
-  readonly client: Pick<ApiClient, "request" | "issueLicense">;
+  readonly client: Pick<
+    ApiClient,
+    "request" | "issueLicense" | "issuePaidLicense" | "getPlans"
+  >;
   /** The session state now. */
   readonly getState: () => SubscriptionAuthState;
   /** Listens to session changes: a sign-in or sign-out refreshes the license. */

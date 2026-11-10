@@ -29,8 +29,6 @@ const PRODUCT = "notlar";
 const DEVICE_ID = "device-0123456789abcdef0123456789abcdef";
 const OTHER_DEVICE_ID = "device-ffffffffffffffffffffffffffffffff";
 const TTL_MS = 72 * HOUR_MS;
-const PAID_PATH = "/api/customer/licenses";
-const PLANS_PATH = `/api/public/products/${PRODUCT}/plans`;
 
 /** The key the backend signs with in the tests, and the next one of a rotation. */
 const SIGNER = createLicenseSigner("test-2026-01", PRODUCT);
@@ -130,19 +128,22 @@ const createFakeAuth = (
   const issueLicense = vi.fn<(body: unknown) => Promise<IssuedLicense>>(() =>
     answer(answers.trial)
   );
-  const request = vi.fn(
-    async (spec: { method: string; path: string; body?: unknown }) => {
-      if (spec.path === PAID_PATH) return answer(answers.paid);
-      if (spec.path === PLANS_PATH) {
-        if (answers.plans instanceof Error) throw answers.plans;
-        return answers.plans ?? [];
-      }
-      throw new Error(`unexpected request to ${spec.path}`);
-    }
+  const issuePaidLicense = vi.fn<(body: unknown) => Promise<IssuedLicense>>(
+    () => answer(answers.paid)
   );
+  const getPlans = vi.fn(async () => {
+    if (answers.plans instanceof Error) throw answers.plans;
+    return answers.plans ?? [];
+  });
+  // Nothing of the subscription goes through the generic request any more.
+  const request = vi.fn(async (spec: { path: string }) => {
+    throw new Error(`unexpected request to ${spec.path}`);
+  });
   const auth = {
     client: {
       issueLicense,
+      issuePaidLicense,
+      getPlans,
       request,
     } as unknown as SubscriptionOptions["auth"]["client"],
     getState: vi.fn(() => session),
@@ -157,12 +158,12 @@ const createFakeAuth = (
   return {
     auth,
     issueLicense,
+    issuePaidLicense,
+    getPlans,
     request,
     answers,
-    paidCalls: (): number =>
-      request.mock.calls.filter(([spec]) => spec.path === PAID_PATH).length,
-    plansCalls: (): number =>
-      request.mock.calls.filter(([spec]) => spec.path === PLANS_PATH).length,
+    paidCalls: (): number => issuePaidLicense.mock.calls.length,
+    plansCalls: (): number => getPlans.mock.calls.length,
     signIn: (id = 7): void => {
       session = { status: "signed-in", user: { id } };
       for (const listener of [...listeners]) listener(session);
@@ -330,8 +331,6 @@ export {
   MINUTE_MS,
   NEXT_SIGNER,
   OTHER_DEVICE_ID,
-  PAID_PATH,
-  PLANS_PATH,
   PRODUCT,
   SECOND_MS,
   SIGNER,
