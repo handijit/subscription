@@ -76,6 +76,7 @@ The subscription only uses `@handijit/auth` through its `Auth` instance; it neve
 ```ts
 import { createAuth } from "@handijit/auth/main";
 import { startApp } from "@handijit/electron/main";
+import { app } from "electron";
 import {
   createSubscription,
   registerSubscriptionIpc,
@@ -84,7 +85,9 @@ import {
 const auth = createAuth({ product: "notlar" });
 const subscription = createSubscription({ product: "notlar", auth });
 
-await startApp({
+// No top-level `await`: Electron emits `ready` only after an ES module main has finished
+// evaluating, so awaiting the start-up here would wait forever.
+startApp({
   contract, // the program's own contract, with authContract inside
   handlers: () => ({ ...auth.handlers /* , the program's own */ }),
   rendererRoot,
@@ -94,6 +97,9 @@ await startApp({
     registerSubscriptionIpc({ subscription, policy: context.policy });
     void subscription.start();
   },
+}).catch((error: unknown) => {
+  console.error("The program could not start", error);
+  app.exit(1);
 });
 
 // Anywhere in main, before doing what the plan limits:
@@ -236,7 +242,7 @@ license or the backend's earlier answer, only while signed out), then the last f
 
 ```ts
 subscription.isEntitled(); // a trial or a subscription is in force
-subscription.check("notes", 42); // { isAllowed: true } or { isAllowed: false, reason, limit, max }
+subscription.check("notes", 42); // { isAllowed: true } or { isAllowed: false, reason: "not-entitled" | "limit-reached", limit, max }
 subscription.require("notes", 42); // throws SubscriptionAccessError (NOT_ENTITLED | LIMIT_REACHED)
 ```
 

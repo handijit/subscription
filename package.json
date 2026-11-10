@@ -1,6 +1,6 @@
 {
   "name": "@handijit/subscription",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Licensing and subscriptions for Han Dijit desktop programs on Electron: a device-bound free trial, a monthly or yearly subscription bound to one device, Ed25519 license verification in the main process, offline use until the license expires, a purchase flow through the web panel, a typed IPC fragment, a renderer client, a React hook and a paywall on @handijit/ui.",
   "author": "Ahmet ilhan <ahmetilhan.dev@gmail.com>",
   "license": "MIT",
